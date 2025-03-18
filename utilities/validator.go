@@ -37,7 +37,7 @@ func (requestValidator *RequestValidator) Validate(i interface{}) error {
 		for index, error := range validationErrors {
 			requestErrors[index] = RequestError{Param: error.Field(), Message: GetErrorMessage(error)}
 		}
-		return echo.NewHTTPError(http.StatusBadRequest, map[string]interface{}{"errors": requestErrors})
+		return echo.NewHTTPError(http.StatusBadRequest, map[string][]RequestError{"errors": requestErrors})
 	}
 
 	return nil

@@ -1,28 +1,29 @@
 package controllers
 
 import (
+	"carbon/dto"
+	"carbon/models"
+	"carbon/utilities"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
+	"golang.org/x/crypto/bcrypt"
 )
 
-type UserSignupDto struct {
-	FirstName string `json:"first_name" validate:"required"`
-	LastName  string `json:"last_name" validate:"required"`
-	Email     string `json:"email" validate:"required,email"`
-	Password  string `json:"password" validate:"required,min=8"`
-}
-
 func Signup(context echo.Context) error {
-	signupDto := new(UserSignupDto)
+	var signupDto *dto.UserSignupDto = context.Get("signupDto").(*dto.UserSignupDto)
 
-	if err := context.Bind(signupDto); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+	password, _ := bcrypt.GenerateFromPassword([]byte(signupDto.Password), 14)
+
+	user := models.User{FirstName: signupDto.FirstName, LastName: signupDto.LastName, Email: signupDto.Email, Password: string(password), AuthProvider: 1}
+
+	database := utilities.GetDatabaseObject()
+
+	result := database.Create(&user)
+
+	if result.Error != nil {
+		return context.JSON(http.StatusInternalServerError, map[string]string{"message": "There was a problem signing the user up."})
 	}
 
-	if err := context.Validate(signupDto); err != nil {
-		return err
-	}
-
-	return context.JSON(http.StatusOK, signupDto)
+	return context.JSON(http.StatusCreated, utilities.TransformUsers([]models.User{user}, []string{})[0])
 }
