@@ -25,5 +25,5 @@ func Signup(context echo.Context) error {
 		return context.JSON(http.StatusInternalServerError, map[string]string{"message": "There was a problem signing the user up."})
 	}
 
-	return context.JSON(http.StatusCreated, utilities.TransformUsers([]models.User{user}, []string{})[0])
+	return context.JSON(http.StatusCreated, user)
 }
