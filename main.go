@@ -3,9 +3,9 @@ package main
 import (
 	"carbon/controllers"
 	"carbon/models"
+	"carbon/utilities"
 	"fmt"
 	"log"
-	"net/http"
 	"os"
 
 	"github.com/go-playground/validator/v10"
@@ -14,18 +14,6 @@ import (
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
-
-type RequestValidator struct {
-	validator *validator.Validate
-}
-
-func (validator *RequestValidator) Validate(i interface{}) error {
-	if err := validator.validator.Struct(i); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
-	}
-
-	return nil
-}
 
 func main() {
 	err := godotenv.Load()
@@ -45,7 +33,7 @@ func main() {
 	database.AutoMigrate(&models.User{})
 
 	app := echo.New()
-	app.Validator = &RequestValidator{validator: validator.New()}
+	app.Validator = &utilities.RequestValidator{Validator: validator.New()}
 
 	app.POST("/auth/signup", controllers.Signup)
 	app.Logger.Fatal(app.Start(":8000"))
