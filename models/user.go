@@ -19,7 +19,7 @@ type User struct {
 	AuthProvider       uint            `gorm:"not null" json:"-"`
 	Password           string          `gorm:"not null;type:varchar(191)" json:"-"`
 	PasswordReset      *datatypes.JSON `json:"-"`
-	CreatedAt          time.Time       `gorm:"not null" json:"created_at"`
+	CreatedAt          time.Time       `gorm:"not null" json:"-"`
 	UpdatedAt          time.Time       `gorm:"not null" json:"-"`
 	DeletedAt          gorm.DeletedAt  `json:"-"`
 }

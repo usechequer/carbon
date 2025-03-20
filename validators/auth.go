@@ -18,7 +18,7 @@ func SignupValidator(context echo.Context) error {
 	signupDto := new(dto.UserSignupDto)
 
 	if err := context.Bind(signupDto); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+		return utilities.ThrowException(context, &utilities.Exception{StatusCode: http.StatusBadRequest, Error: "MALFORMED_REQUEST", Message: err.Error()})
 	}
 
 	if err := context.Validate(signupDto); err != nil {
