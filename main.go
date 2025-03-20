@@ -26,6 +26,7 @@ func main() {
 	app.Validator = &utilities.RequestValidator{Validator: validator.New()}
 
 	app.POST("/auth/signup", validators.SignupValidator)
+	app.POST("/auth/login", validators.LoginValidator)
 	app.PUT("/users/:uuid/verify", validators.VerifyUserValidator)
 	app.Logger.Fatal(app.Start(":8000"))
 }
