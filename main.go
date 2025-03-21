@@ -1,6 +1,7 @@
 package main
 
 import (
+	"carbon/middleware"
 	"carbon/models"
 	"carbon/utilities"
 	"carbon/validators"
@@ -26,6 +27,12 @@ func main() {
 	app.Validator = &utilities.RequestValidator{Validator: validator.New()}
 
 	app.POST("/auth/signup", validators.SignupValidator)
+	app.POST("/auth/login", validators.LoginValidator)
 	app.PUT("/users/:uuid/verify", validators.VerifyUserValidator)
+
+	group := app.Group("/users/:uuid")
+	group.Use(middleware.AuthMiddleware)
+	group.PUT("", validators.UpdateUserValidator)
+
 	app.Logger.Fatal(app.Start(":8000"))
 }

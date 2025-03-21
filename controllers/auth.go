@@ -27,3 +27,15 @@ func Signup(context echo.Context) error {
 
 	return context.JSON(http.StatusCreated, user)
 }
+
+func Login(context echo.Context) error {
+	user := context.Get("user").(models.User)
+
+	token, err := utilities.GenerateJwtToken(user.Uuid.String())
+
+	if err != nil {
+		return utilities.ThrowException(context, &utilities.Exception{StatusCode: http.StatusInternalServerError, Error: "AUTH_003", Message: "There was a problem generating the token."})
+	}
+
+	return context.JSON(http.StatusOK, map[string]interface{}{"token": token, "user": user})
+}

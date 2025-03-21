@@ -38,3 +38,25 @@ func VerifyUserValidator(context echo.Context) error {
 
 	return controllers.VerifyUser(context)
 }
+
+func UpdateUserValidator(context echo.Context) error {
+	user := context.Get("user").(models.User)
+
+	updateUserDto := new(dto.UpdateUserDto)
+
+	if err := context.Bind(updateUserDto); err != nil {
+		return utilities.ThrowException(context, &utilities.Exception{StatusCode: http.StatusBadRequest, Error: "MALFORMED_REQUEST", Message: err.Error()})
+	}
+
+	if user.Uuid.String() != updateUserDto.Uuid.String() {
+		return utilities.ThrowException(context, &utilities.Exception{StatusCode: http.StatusUnauthorized, Error: "AUTH_004", Message: "Not authenticated"})
+	}
+
+	if err := context.Validate(updateUserDto); err != nil {
+		return err
+	}
+
+	context.Set("updateUserDto", updateUserDto)
+
+	return controllers.UpdateUser(context)
+}
