@@ -4,9 +4,13 @@ import (
 	"carbon/dto"
 	"carbon/models"
 	"carbon/utilities"
+	"fmt"
 	"net/http"
+	"os"
 
+	"github.com/gorilla/sessions"
 	"github.com/labstack/echo/v4"
+	"github.com/markbates/goth/gothic"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -38,4 +42,38 @@ func Login(context echo.Context) error {
 	}
 
 	return context.JSON(http.StatusOK, map[string]interface{}{"token": token, "user": user})
+}
+
+func OauthRedirectHandler(context echo.Context) error {
+	provider := context.Param("provider")
+
+	query := context.Request().URL.Query()
+	query.Add("provider", provider)
+	context.Request().URL.RawQuery = query.Encode()
+
+	request := context.Request()
+	response := context.Response().Writer
+
+	gothic.Store = sessions.NewCookieStore([]byte(os.Getenv("JWT_SECRET")))
+
+	if gothUser, err := gothic.CompleteUserAuth(response, request); err == nil {
+		return context.JSON(http.StatusOK, gothUser)
+	}
+
+	gothic.BeginAuthHandler(response, request)
+	return nil
+}
+
+func OauthCallbackHandler(context echo.Context) error {
+	provider := context.Param("provider")
+	request := context.Request()
+	response := context.Response().Writer
+
+	_, err := gothic.CompleteUserAuth(response, request)
+
+	if err != nil {
+		return utilities.ThrowException(context, &utilities.Exception{StatusCode: http.StatusBadRequest, Error: "AUTH_005", Message: fmt.Sprintf("There was an issue retrieving user information from %s", provider)})
+	}
+
+	return context.JSON(123, "abcdj")
 }

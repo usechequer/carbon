@@ -1,6 +1,7 @@
 package main
 
 import (
+	"carbon/controllers"
 	"carbon/middleware"
 	"carbon/models"
 	"carbon/utilities"
@@ -23,11 +24,16 @@ func main() {
 
 	database.AutoMigrate(&models.User{})
 
+	utilities.RegisterOauthProviders()
+
 	app := echo.New()
 	app.Validator = &utilities.RequestValidator{Validator: validator.New()}
 
 	app.POST("/auth/signup", validators.SignupValidator)
 	app.POST("/auth/login", validators.LoginValidator)
+	app.GET("/auth/:provider", controllers.OauthRedirectHandler)
+	app.GET("/auth/:provider/callback", controllers.OauthCallbackHandler)
+
 	app.PUT("/users/:uuid/verify", validators.VerifyUserValidator)
 
 	group := app.Group("/users/:uuid")
