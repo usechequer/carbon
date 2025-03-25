@@ -32,6 +32,7 @@ func main() {
 	app.POST("/auth/signup", validators.SignupValidator)
 	app.POST("/auth/login", validators.LoginValidator)
 	app.GET("/auth/:provider", controllers.OauthRedirectHandler)
+	app.POST("/auth/:provider/callback", validators.OauthCallbackValidator)
 	app.GET("/auth/:provider/callback", validators.OauthCallbackValidator)
 
 	app.PUT("/users/:uuid/verify", validators.VerifyUserValidator)

@@ -9,7 +9,6 @@ import (
 	"os"
 	"time"
 
-	"github.com/gorilla/sessions"
 	"github.com/labstack/echo/v4"
 	"github.com/markbates/goth"
 	"github.com/markbates/goth/gothic"
@@ -62,7 +61,7 @@ func OauthRedirectHandler(context echo.Context) error {
 	request := context.Request()
 	response := context.Response().Writer
 
-	gothic.Store = sessions.NewCookieStore([]byte(os.Getenv("JWT_SECRET")))
+	gothic.Store = utilities.GetOauthSessionStore()
 
 	if gothUser, err := gothic.CompleteUserAuth(response, request); err == nil {
 		return context.JSON(http.StatusOK, gothUser)
@@ -102,7 +101,7 @@ func OauthCallbackHandler(context echo.Context) error {
 		jwtToken = token
 	} else {
 		providerUser := contextUser.(goth.User)
-		user := models.User{FirstName: providerUser.FirstName, LastName: providerUser.LastName, Email: providerUser.Email, Password: GenerateRandomString(120), EmailVerifiedAt: GetTimestampPointer(time.Now()), AuthProvider: authProvider}
+		user := models.User{FirstName: providerUser.FirstName, LastName: providerUser.LastName, Email: providerUser.Email, Password: GenerateRandomString(120), EmailVerifiedAt: GetTimestampPointer(time.Now()), AuthProvider: authProvider, Avatar: &providerUser.AvatarURL}
 		token, err := utilities.GenerateJwtToken(user.Uuid.String())
 
 		if err != nil {
@@ -112,7 +111,14 @@ func OauthCallbackHandler(context echo.Context) error {
 		jwtToken = token
 	}
 
-	return context.JSON(200, map[string]interface{}{"token": jwtToken, "user": user})
+	cookieToken := new(http.Cookie)
+	cookieToken.Name = "token"
+	cookieToken.Value = jwtToken
+	cookieToken.Expires = time.Now().Add(time.Hour * 72)
+	cookieToken.Path = "/"
+	http.SetCookie(context.Response().Writer, cookieToken)
+
+	return context.Redirect(http.StatusTemporaryRedirect, os.Getenv("CLIENT_URL"))
 }
 
 func GenerateRandomString(length int) string {

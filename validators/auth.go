@@ -81,13 +81,28 @@ func LoginValidator(context echo.Context) error {
 
 func OauthCallbackValidator(context echo.Context) error {
 	provider := context.Param("provider")
+	query := context.Request().URL.Query()
+	query.Add("provider", provider)
+	context.Request().URL.RawQuery = query.Encode()
+
 	request := context.Request()
 	response := context.Response().Writer
-	isLogin, _ := strconv.ParseBool(context.QueryParam("isLogin"))
+
+	isLoginStr := context.QueryParam("isLogin")
+	var isLogin bool
+
+	if isLoginStr == "" {
+		isLogin = true
+	} else {
+		isLogin, _ = strconv.ParseBool(context.QueryParam("isLogin"))
+	}
+
+	gothic.Store = utilities.GetOauthSessionStore()
 
 	providerUser, err := gothic.CompleteUserAuth(response, request)
 
 	if err != nil {
+		fmt.Println(err)
 		return utilities.ThrowException(context, &utilities.Exception{StatusCode: http.StatusBadRequest, Error: "AUTH_005", Message: fmt.Sprintf("There was an issue retrieving user information from %s", provider)})
 	}
 
