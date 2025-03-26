@@ -4,9 +4,12 @@ import (
 	"carbon/dto"
 	"carbon/models"
 	"carbon/utilities"
+	"fmt"
 	"math/rand"
 	"net/http"
 	"os"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/labstack/echo/v4"
@@ -54,8 +57,18 @@ func Login(context echo.Context) error {
 func OauthRedirectHandler(context echo.Context) error {
 	provider := context.Param("provider")
 
+	isLoginStr := context.QueryParam("isLogin")
+	var isLogin bool
+
+	if isLoginStr == "" {
+		isLogin = true
+	} else {
+		isLogin, _ = strconv.ParseBool(context.QueryParam("isLogin"))
+	}
+
 	query := context.Request().URL.Query()
 	query.Add("provider", provider)
+	query.Add("state", fmt.Sprintf("isLogin=%s", strconv.FormatBool(isLogin)))
 	context.Request().URL.RawQuery = query.Encode()
 
 	request := context.Request()
@@ -77,11 +90,11 @@ func OauthCallbackHandler(context echo.Context) error {
 
 	switch provider {
 	case "google":
-		authProvider = 1
-	case "github":
 		authProvider = 2
+	case "github":
+		authProvider = 3
 	default:
-		authProvider = 1
+		authProvider = 2
 	}
 
 	isLogin := context.Get("isLogin").(bool)
@@ -101,7 +114,15 @@ func OauthCallbackHandler(context echo.Context) error {
 		jwtToken = token
 	} else {
 		providerUser := contextUser.(goth.User)
-		user := models.User{FirstName: providerUser.FirstName, LastName: providerUser.LastName, Email: providerUser.Email, Password: GenerateRandomString(120), EmailVerifiedAt: GetTimestampPointer(time.Now()), AuthProvider: authProvider, Avatar: &providerUser.AvatarURL}
+		firstName, lastName := getOauthNames(providerUser.RawData)
+		user := models.User{FirstName: firstName, LastName: lastName, Email: providerUser.Email, Password: generateRandomString(120), EmailVerifiedAt: GetTimestampPointer(time.Now()), AuthProvider: authProvider, Avatar: &providerUser.AvatarURL}
+		database := utilities.GetDatabaseObject()
+		result := database.Create(&user)
+
+		if result.Error != nil {
+			return context.JSON(http.StatusInternalServerError, map[string]string{"message": "There was a problem signing the user up."})
+		}
+
 		token, err := utilities.GenerateJwtToken(user.Uuid.String())
 
 		if err != nil {
@@ -121,7 +142,16 @@ func OauthCallbackHandler(context echo.Context) error {
 	return context.Redirect(http.StatusTemporaryRedirect, os.Getenv("CLIENT_URL"))
 }
 
-func GenerateRandomString(length int) string {
+func getOauthNames(data map[string]interface{}) (firstName string, lastName string) {
+	name := data["name"].(string)
+	nameSplits := strings.Split(name, " ")
+	firstName = nameSplits[0]
+	lastName = strings.Join(nameSplits[1:], " ")
+
+	return firstName, lastName
+}
+
+func generateRandomString(length int) string {
 	const CHARSET = "abcdefghijklmnopqrstuvwxyz" + "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 	bytes := make([]byte, length)
 	var seededRand *rand.Rand = rand.New(

@@ -12,7 +12,7 @@ import (
 var store *sessions.CookieStore
 
 func RegisterOauthProviders() {
-	goth.UseProviders(google.New(os.Getenv("GOOGLE_CLIENT_ID"), os.Getenv("GOOGLE_CLIENT_SECRET"), os.Getenv("GOOGLE_CLIENT_REDIRECT")))
+	goth.UseProviders(google.New(os.Getenv("GOOGLE_CLIENT_ID"), os.Getenv("GOOGLE_CLIENT_SECRET"), os.Getenv("GOOGLE_CLIENT_REDIRECT"), "email", "profile"))
 	goth.UseProviders(github.New(os.Getenv("GITHUB_CLIENT_ID"), os.Getenv("GITHUB_CLIENT_SECRET"), os.Getenv("GITHUB_CLIENT_REDIRECT")))
 }
 

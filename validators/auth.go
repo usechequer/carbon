@@ -88,14 +88,8 @@ func OauthCallbackValidator(context echo.Context) error {
 	request := context.Request()
 	response := context.Response().Writer
 
-	isLoginStr := context.QueryParam("isLogin")
-	var isLogin bool
-
-	if isLoginStr == "" {
-		isLogin = true
-	} else {
-		isLogin, _ = strconv.ParseBool(context.QueryParam("isLogin"))
-	}
+	state := context.QueryParam("state")
+	isLogin, _ := strconv.ParseBool(strings.Split(state, "=")[1])
 
 	gothic.Store = utilities.GetOauthSessionStore()
 
