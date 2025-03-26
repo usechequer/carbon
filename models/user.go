@@ -16,6 +16,7 @@ type User struct {
 	Email              string          `gorm:"unique;not null" json:"email"`
 	EmailVerifiedAt    *time.Time      `json:"email_verified_at"`
 	CurrentProjectUuid *uuid.UUID      `gorm:"type:varchar(36)" json:"current_project_uuid"`
+	Avatar             *string         `gorm:"type:varchar(191)" json:"avatar"`
 	AuthProvider       uint            `gorm:"not null" json:"-"`
 	Password           string          `gorm:"not null;type:varchar(191)" json:"-"`
 	PasswordReset      *datatypes.JSON `json:"-"`
