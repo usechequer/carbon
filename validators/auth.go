@@ -8,12 +8,11 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"strconv"
 	"strings"
 
 	"github.com/labstack/echo/v4"
-	"github.com/markbates/goth/gothic"
 	"golang.org/x/crypto/bcrypt"
+	"gorm.io/datatypes"
 	"gorm.io/gorm"
 )
 
@@ -79,48 +78,64 @@ func LoginValidator(context echo.Context) error {
 	return controllers.Login(context)
 }
 
-func OauthCallbackValidator(context echo.Context) error {
-	provider := context.Param("provider")
-	query := context.Request().URL.Query()
-	query.Add("provider", provider)
-	context.Request().URL.RawQuery = query.Encode()
+func ResetPasswordValidator(context echo.Context) error {
+	resetPasswordDto := new(dto.ResetPasswordDto)
 
-	request := context.Request()
-	response := context.Response().Writer
-
-	state := context.QueryParam("state")
-	isLogin, _ := strconv.ParseBool(strings.Split(state, "=")[1])
-
-	gothic.Store = utilities.GetOauthSessionStore()
-
-	providerUser, err := gothic.CompleteUserAuth(response, request)
-
-	if err != nil {
-		fmt.Println(err)
-		return utilities.ThrowException(context, &utilities.Exception{StatusCode: http.StatusBadRequest, Error: "AUTH_005", Message: fmt.Sprintf("There was an issue retrieving user information from %s", provider)})
+	if err := context.Bind(resetPasswordDto); err != nil {
+		return utilities.ThrowException(context, &utilities.Exception{StatusCode: http.StatusBadRequest, Error: "MALFORMED_REQUEST", Message: err.Error()})
 	}
 
-	context.Set("isLogin", isLogin)
+	if err := context.Validate(resetPasswordDto); err != nil {
+		return err
+	}
 
 	var user models.User
 
 	database := utilities.GetDatabaseObject()
 
-	result := database.Where("email = ?", providerUser.Email).First(&user)
+	result := database.Where("email = ?", resetPasswordDto.Email).First(&user)
 
-	if isLogin {
-		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
-			return utilities.ThrowException(context, &utilities.Exception{StatusCode: http.StatusBadRequest, Error: "AUTH_002", Message: "User does not exist with the specified email"})
-		}
-
-		context.Set("user", user)
-	} else {
-		if !errors.Is(result.Error, gorm.ErrRecordNotFound) {
-			return utilities.ThrowException(context, &utilities.Exception{StatusCode: http.StatusBadRequest, Error: "AUTH_002", Message: "User exists already"})
-		}
-
-		context.Set("user", providerUser)
+	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+		return utilities.ThrowException(context, &utilities.Exception{StatusCode: http.StatusNotFound, Error: "USER_001", Message: fmt.Sprintf("User with email %s does not exist", resetPasswordDto.Email)})
 	}
 
-	return controllers.OauthCallbackHandler(context)
+	context.Set("user", user)
+
+	return controllers.ResetPassword(context)
+}
+
+func ConfirmResetPasswordValidator(context echo.Context) error {
+	confirmResetPasswordDto := new(dto.ConfirmResetPasswordDto)
+
+	if err := context.Bind(confirmResetPasswordDto); err != nil {
+		return utilities.ThrowException(context, &utilities.Exception{StatusCode: http.StatusBadRequest, Error: "MALFORMED_REQUEST", Message: err.Error()})
+	}
+
+	if err := context.Validate(confirmResetPasswordDto); err != nil {
+		return err
+	}
+
+	var user models.User
+
+	database := utilities.GetDatabaseObject()
+
+	result := database.First(&user, datatypes.JSONQuery("password_reset").Equals(confirmResetPasswordDto.Token, "token"))
+
+	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+		return utilities.ThrowException(context, &utilities.Exception{StatusCode: http.StatusNotFound, Error: "USER_001", Message: fmt.Sprintf("User with password reset token %s does not exist", confirmResetPasswordDto.Token)})
+	}
+
+	var bytes []byte
+
+	fmt.Println(user.PasswordReset.Value())
+
+	err := user.PasswordReset.UnmarshalJSON(bytes)
+
+	fmt.Println(err)
+	fmt.Println(user.PasswordReset)
+
+	return context.JSON(200, "abc")
+
+	context.Set("confirmResetPasswordDto", confirmResetPasswordDto)
+	return controllers.ConfirmResetPassword(context)
 }

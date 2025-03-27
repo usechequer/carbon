@@ -31,15 +31,22 @@ func main() {
 
 	app.POST("/auth/signup", validators.SignupValidator)
 	app.POST("/auth/login", validators.LoginValidator)
+
+	app.POST("/auth/reset-password", validators.ResetPasswordValidator)
+	app.POST("/auth/reset-password/confirm", validators.ConfirmResetPasswordValidator)
+
 	app.GET("/auth/:provider", controllers.OauthRedirectHandler)
-	app.POST("/auth/:provider/callback", validators.OauthCallbackValidator)
 	app.GET("/auth/:provider/callback", validators.OauthCallbackValidator)
 
 	app.PUT("/users/:uuid/verify", validators.VerifyUserValidator)
 
-	group := app.Group("/users/:uuid")
-	group.Use(middleware.AuthMiddleware)
-	group.PUT("", validators.UpdateUserValidator)
+	authGroup := app.Group("/auth/me")
+	authGroup.Use(middleware.AuthMiddleware)
+	authGroup.GET("", controllers.GetAuthUser)
+
+	userGroup := app.Group("/users/:uuid")
+	userGroup.Use(middleware.AuthMiddleware)
+	userGroup.PUT("", validators.UpdateUserValidator)
 
 	app.Logger.Fatal(app.Start(":8000"))
 }
