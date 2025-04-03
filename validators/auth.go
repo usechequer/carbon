@@ -5,10 +5,12 @@ import (
 	"carbon/dto"
 	"carbon/models"
 	"carbon/utilities"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/labstack/echo/v4"
 	"golang.org/x/crypto/bcrypt"
@@ -125,17 +127,18 @@ func ConfirmResetPasswordValidator(context echo.Context) error {
 		return utilities.ThrowException(context, &utilities.Exception{StatusCode: http.StatusNotFound, Error: "USER_001", Message: fmt.Sprintf("User with password reset token %s does not exist", confirmResetPasswordDto.Token)})
 	}
 
-	var bytes []byte
+	var pwReset map[string]interface{}
 
-	fmt.Println(user.PasswordReset.Value())
+	json.Unmarshal(*user.PasswordReset, &pwReset)
 
-	err := user.PasswordReset.UnmarshalJSON(bytes)
+	expiresAt, _ := time.Parse(time.RFC3339, pwReset["expires_at"].(string))
 
-	fmt.Println(err)
-	fmt.Println(user.PasswordReset)
+	if expiresAt.Compare(time.Now()) < 0 {
+		return utilities.ThrowException(context, &utilities.Exception{StatusCode: http.StatusBadRequest, Error: "USER_003", Message: "Password reset token has expired"})
+	}
 
-	return context.JSON(200, "abc")
-
+	context.Set("user", user)
 	context.Set("confirmResetPasswordDto", confirmResetPasswordDto)
+
 	return controllers.ConfirmResetPassword(context)
 }

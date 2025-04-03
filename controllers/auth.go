@@ -15,7 +15,7 @@ import (
 )
 
 func getPasswordResetPointer(token string) *datatypes.JSON {
-	passwordReset := datatypes.JSON([]byte(fmt.Sprintf(`{"token": "%s", "expires_at": "%s"}`, token, time.Now().Add(15*time.Minute))))
+	passwordReset := datatypes.JSON([]byte(fmt.Sprintf(`{"token": "%s", "expires_at": "%s"}`, token, time.Now().Add(15*time.Minute).Format(time.RFC3339))))
 	return &passwordReset
 }
 
@@ -65,7 +65,6 @@ func ResetPassword(context echo.Context) error {
 	user := context.Get("user").(models.User)
 
 	token := generateRandomString(100)
-	user.FirstName = "Benny"
 	user.PasswordReset = getPasswordResetPointer(token)
 
 	database := utilities.GetDatabaseObject()
@@ -77,7 +76,7 @@ func ResetPassword(context echo.Context) error {
 
 func ConfirmResetPassword(context echo.Context) error {
 	user := context.Get("user").(models.User)
-	confirmResetPasswordDto := context.Get("confiirmResetPasswordDto").(*dto.ConfirmResetPasswordDto)
+	confirmResetPasswordDto := context.Get("confirmResetPasswordDto").(*dto.ConfirmResetPasswordDto)
 
 	password, _ := bcrypt.GenerateFromPassword([]byte(confirmResetPasswordDto.Password), 14)
 
