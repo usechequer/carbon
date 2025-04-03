@@ -4,16 +4,26 @@ import (
 	"carbon/dto"
 	"carbon/models"
 	"carbon/utilities"
+	"fmt"
 	"math/rand"
 	"net/http"
-	"os"
 	"time"
 
 	"github.com/labstack/echo/v4"
-	"github.com/markbates/goth"
-	"github.com/markbates/goth/gothic"
 	"golang.org/x/crypto/bcrypt"
+	"gorm.io/datatypes"
 )
+
+func getPasswordResetPointer(token string) *datatypes.JSON {
+	passwordReset := datatypes.JSON([]byte(fmt.Sprintf(`{"token": "%s", "expires_at": "%s"}`, token, time.Now().Add(15*time.Minute).Format(time.RFC3339))))
+	return &passwordReset
+}
+
+func GetAuthUser(context echo.Context) error {
+	user := context.Get("user")
+
+	return context.JSON(http.StatusOK, user)
+}
 
 func Signup(context echo.Context) error {
 	var signupDto *dto.UserSignupDto = context.Get("signupDto").(*dto.UserSignupDto)
@@ -51,77 +61,35 @@ func Login(context echo.Context) error {
 	return context.JSON(http.StatusOK, map[string]interface{}{"token": token, "user": user})
 }
 
-func OauthRedirectHandler(context echo.Context) error {
-	provider := context.Param("provider")
+func ResetPassword(context echo.Context) error {
+	user := context.Get("user").(models.User)
 
-	query := context.Request().URL.Query()
-	query.Add("provider", provider)
-	context.Request().URL.RawQuery = query.Encode()
+	token := generateRandomString(100)
+	user.PasswordReset = getPasswordResetPointer(token)
 
-	request := context.Request()
-	response := context.Response().Writer
+	database := utilities.GetDatabaseObject()
 
-	gothic.Store = utilities.GetOauthSessionStore()
+	database.Save(&user)
 
-	if gothUser, err := gothic.CompleteUserAuth(response, request); err == nil {
-		return context.JSON(http.StatusOK, gothUser)
-	}
-
-	gothic.BeginAuthHandler(response, request)
-	return nil
+	return context.JSON(http.StatusOK, map[string]string{"message": "Reset password email sent successfully"})
 }
 
-func OauthCallbackHandler(context echo.Context) error {
-	provider := context.Param("provider")
-	var authProvider uint
+func ConfirmResetPassword(context echo.Context) error {
+	user := context.Get("user").(models.User)
+	confirmResetPasswordDto := context.Get("confirmResetPasswordDto").(*dto.ConfirmResetPasswordDto)
 
-	switch provider {
-	case "google":
-		authProvider = 1
-	case "github":
-		authProvider = 2
-	default:
-		authProvider = 1
-	}
+	password, _ := bcrypt.GenerateFromPassword([]byte(confirmResetPasswordDto.Password), 14)
 
-	isLogin := context.Get("isLogin").(bool)
-	contextUser := context.Get("user")
+	user.Password = string(password)
+	user.PasswordReset = nil
 
-	var user models.User
-	var jwtToken string
+	database := utilities.GetDatabaseObject()
+	database.Save(&user)
 
-	if isLogin {
-		user = contextUser.(models.User)
-		token, err := utilities.GenerateJwtToken(user.Uuid.String())
-
-		if err != nil {
-			return utilities.ThrowException(context, &utilities.Exception{StatusCode: http.StatusInternalServerError, Error: "AUTH_003", Message: "There was a problem generating the token."})
-		}
-
-		jwtToken = token
-	} else {
-		providerUser := contextUser.(goth.User)
-		user := models.User{FirstName: providerUser.FirstName, LastName: providerUser.LastName, Email: providerUser.Email, Password: GenerateRandomString(120), EmailVerifiedAt: GetTimestampPointer(time.Now()), AuthProvider: authProvider, Avatar: &providerUser.AvatarURL}
-		token, err := utilities.GenerateJwtToken(user.Uuid.String())
-
-		if err != nil {
-			return utilities.ThrowException(context, &utilities.Exception{StatusCode: http.StatusInternalServerError, Error: "AUTH_003", Message: "There was a problem generating the token."})
-		}
-
-		jwtToken = token
-	}
-
-	cookieToken := new(http.Cookie)
-	cookieToken.Name = "token"
-	cookieToken.Value = jwtToken
-	cookieToken.Expires = time.Now().Add(time.Hour * 72)
-	cookieToken.Path = "/"
-	http.SetCookie(context.Response().Writer, cookieToken)
-
-	return context.Redirect(http.StatusTemporaryRedirect, os.Getenv("CLIENT_URL"))
+	return context.JSON(http.StatusOK, map[string]string{"message": "Password reset successfully"})
 }
 
-func GenerateRandomString(length int) string {
+func generateRandomString(length int) string {
 	const CHARSET = "abcdefghijklmnopqrstuvwxyz" + "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 	bytes := make([]byte, length)
 	var seededRand *rand.Rand = rand.New(

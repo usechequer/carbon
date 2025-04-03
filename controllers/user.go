@@ -10,7 +10,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func GetTimestampPointer(val time.Time) *time.Time {
+func getTimestampPointer(val time.Time) *time.Time {
 	return &val
 }
 
@@ -19,7 +19,7 @@ func VerifyUser(context echo.Context) error {
 
 	database := utilities.GetDatabaseObject()
 
-	user.EmailVerifiedAt = GetTimestampPointer(time.Now())
+	user.EmailVerifiedAt = getTimestampPointer(time.Now())
 
 	database.Save(&user)
 
