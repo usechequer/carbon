@@ -47,6 +47,7 @@ func main() {
 	userGroup := app.Group("/users/:uuid")
 	userGroup.Use(middleware.AuthMiddleware)
 	userGroup.PUT("", validators.UpdateUserValidator)
+	userGroup.PUT("/change-avatar", controllers.UpdateUserAvatar)
 
 	app.Logger.Fatal(app.Start(":8000"))
 }
