@@ -48,6 +48,10 @@ func UpdateUser(ctx echo.Context) error {
 		user.LastName = updateUserDto.LastName
 	}
 
+	if len(updateUserDto.CurrentProjectUuid) > 0 {
+		user.CurrentProjectUuid = &updateUserDto.CurrentProjectUuid
+	}
+
 	database := utilities.GetDatabaseObject()
 
 	avatar, err := ctx.FormFile("avatar")
