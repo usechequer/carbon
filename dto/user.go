@@ -8,6 +8,6 @@ type VerifyUserDto struct {
 
 type UpdateUserDto struct {
 	Uuid      uuid.UUID `param:"uuid"`
-	FirstName string    `json:"first_name" validate:"required"`
-	LastName  string    `json:"last_name" validate:"required"`
+	FirstName string    `form:"first_name"`
+	LastName  string    `form:"last_name"`
 }
