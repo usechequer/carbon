@@ -12,6 +12,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/markbates/goth/gothic"
+	chequerutilities "github.com/usechequer/utilities"
 	"gorm.io/gorm"
 )
 
@@ -33,26 +34,26 @@ func OauthCallbackValidator(context echo.Context) error {
 
 	if err != nil {
 		fmt.Println(err)
-		return utilities.ThrowException(context, &utilities.Exception{StatusCode: http.StatusBadRequest, Error: "AUTH_005", Message: fmt.Sprintf("There was an issue retrieving user information from %s", provider)})
+		return chequerutilities.ThrowException(context, &chequerutilities.Exception{StatusCode: http.StatusBadRequest, Error: "AUTH_005", Message: fmt.Sprintf("There was an issue retrieving user information from %s", provider)})
 	}
 
 	context.Set("isLogin", isLogin)
 
 	var user models.User
 
-	database := utilities.GetDatabaseObject()
+	database := chequerutilities.GetDatabaseObject()
 
 	result := database.Where("email = ?", providerUser.Email).First(&user)
 
 	if isLogin {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
-			return utilities.ThrowException(context, &utilities.Exception{StatusCode: http.StatusBadRequest, Error: "AUTH_002", Message: "User does not exist with the specified email"})
+			return chequerutilities.ThrowException(context, &chequerutilities.Exception{StatusCode: http.StatusBadRequest, Error: "AUTH_002", Message: "User does not exist with the specified email"})
 		}
 
 		context.Set("user", user)
 	} else {
 		if !errors.Is(result.Error, gorm.ErrRecordNotFound) {
-			return utilities.ThrowException(context, &utilities.Exception{StatusCode: http.StatusBadRequest, Error: "AUTH_002", Message: "User exists already"})
+			return chequerutilities.ThrowException(context, &chequerutilities.Exception{StatusCode: http.StatusBadRequest, Error: "AUTH_002", Message: "User exists already"})
 		}
 
 		context.Set("user", providerUser)

@@ -13,6 +13,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/markbates/goth"
 	"github.com/markbates/goth/gothic"
+	chequerutilities "github.com/usechequer/utilities"
 )
 
 func OauthRedirectHandler(context echo.Context) error {
@@ -69,7 +70,7 @@ func OauthCallbackHandler(context echo.Context) error {
 		token, err := utilities.GenerateJwtToken(user.Uuid.String())
 
 		if err != nil {
-			return utilities.ThrowException(context, &utilities.Exception{StatusCode: http.StatusInternalServerError, Error: "AUTH_003", Message: "There was a problem generating the token."})
+			return chequerutilities.ThrowException(context, &chequerutilities.Exception{StatusCode: http.StatusInternalServerError, Error: "AUTH_003", Message: "There was a problem generating the token."})
 		}
 
 		jwtToken = token
@@ -77,7 +78,7 @@ func OauthCallbackHandler(context echo.Context) error {
 		providerUser := contextUser.(goth.User)
 		firstName, lastName := getOauthNames(providerUser.RawData)
 		user := models.User{FirstName: firstName, LastName: lastName, Email: providerUser.Email, Password: generateRandomString(120), EmailVerifiedAt: getTimestampPointer(time.Now()), AuthProvider: authProvider, Avatar: &providerUser.AvatarURL}
-		database := utilities.GetDatabaseObject()
+		database := chequerutilities.GetDatabaseObject()
 		result := database.Create(&user)
 
 		if result.Error != nil {
@@ -87,7 +88,7 @@ func OauthCallbackHandler(context echo.Context) error {
 		token, err := utilities.GenerateJwtToken(user.Uuid.String())
 
 		if err != nil {
-			return utilities.ThrowException(context, &utilities.Exception{StatusCode: http.StatusInternalServerError, Error: "AUTH_003", Message: "There was a problem generating the token."})
+			return chequerutilities.ThrowException(context, &chequerutilities.Exception{StatusCode: http.StatusInternalServerError, Error: "AUTH_003", Message: "There was a problem generating the token."})
 		}
 
 		jwtToken = token

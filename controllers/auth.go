@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/labstack/echo/v4"
+	chequerutilities "github.com/usechequer/utilities"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/datatypes"
 )
@@ -32,7 +33,7 @@ func Signup(context echo.Context) error {
 
 	user := models.User{FirstName: signupDto.FirstName, LastName: signupDto.LastName, Email: signupDto.Email, Password: string(password), AuthProvider: 1}
 
-	database := utilities.GetDatabaseObject()
+	database := chequerutilities.GetDatabaseObject()
 
 	result := database.Create(&user)
 
@@ -43,7 +44,7 @@ func Signup(context echo.Context) error {
 	token, err := utilities.GenerateJwtToken(user.Uuid.String())
 
 	if err != nil {
-		return utilities.ThrowException(context, &utilities.Exception{StatusCode: http.StatusInternalServerError, Error: "AUTH_003", Message: "There was a problem generating the token."})
+		return chequerutilities.ThrowException(context, &chequerutilities.Exception{StatusCode: http.StatusInternalServerError, Error: "AUTH_003", Message: "There was a problem generating the token."})
 	}
 
 	return context.JSON(http.StatusCreated, map[string]interface{}{"token": token, "user": user})
@@ -55,7 +56,7 @@ func Login(context echo.Context) error {
 	token, err := utilities.GenerateJwtToken(user.Uuid.String())
 
 	if err != nil {
-		return utilities.ThrowException(context, &utilities.Exception{StatusCode: http.StatusInternalServerError, Error: "AUTH_003", Message: "There was a problem generating the token."})
+		return chequerutilities.ThrowException(context, &chequerutilities.Exception{StatusCode: http.StatusInternalServerError, Error: "AUTH_003", Message: "There was a problem generating the token."})
 	}
 
 	return context.JSON(http.StatusOK, map[string]interface{}{"token": token, "user": user})
@@ -67,7 +68,7 @@ func ResetPassword(context echo.Context) error {
 	token := generateRandomString(100)
 	user.PasswordReset = getPasswordResetPointer(token)
 
-	database := utilities.GetDatabaseObject()
+	database := chequerutilities.GetDatabaseObject()
 
 	database.Save(&user)
 
@@ -83,7 +84,7 @@ func ConfirmResetPassword(context echo.Context) error {
 	user.Password = string(password)
 	user.PasswordReset = nil
 
-	database := utilities.GetDatabaseObject()
+	database := chequerutilities.GetDatabaseObject()
 	database.Save(&user)
 
 	return context.JSON(http.StatusOK, map[string]string{"message": "Password reset successfully"})
