@@ -11,6 +11,7 @@ import (
 	"github.com/go-playground/validator/v10"
 	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
+	chequerutilities "github.com/usechequer/utilities"
 )
 
 func main() {
@@ -20,14 +21,14 @@ func main() {
 		log.Fatal("There was a problem loading the environment variables")
 	}
 
-	database := utilities.GetDatabaseObject()
+	database := chequerutilities.GetDatabaseObject()
 
 	database.AutoMigrate(&models.User{})
 
 	utilities.RegisterOauthProviders()
 
 	app := echo.New()
-	app.Validator = &utilities.RequestValidator{Validator: validator.New()}
+	app.Validator = &chequerutilities.RequestValidator{Validator: validator.New()}
 
 	app.POST("/auth/signup", validators.SignupValidator)
 	app.POST("/auth/login", validators.LoginValidator)
@@ -41,11 +42,13 @@ func main() {
 	app.PUT("/users/:uuid/verify", validators.VerifyUserValidator)
 
 	authGroup := app.Group("/auth/me")
-	authGroup.Use(middleware.AuthMiddleware)
+	authGroup.Use(chequerutilities.AuthMiddleware)
+	authGroup.Use(middleware.TokenMiddleware)
 	authGroup.GET("", controllers.GetAuthUser)
 
 	userGroup := app.Group("/users/:uuid")
-	userGroup.Use(middleware.AuthMiddleware)
+	userGroup.Use(chequerutilities.AuthMiddleware)
+	userGroup.Use(middleware.TokenMiddleware)
 	userGroup.PUT("", validators.UpdateUserValidator)
 
 	app.Logger.Fatal(app.Start(":8000"))

@@ -3,7 +3,6 @@ package controllers
 import (
 	"carbon/dto"
 	"carbon/models"
-	"carbon/utilities"
 	"context"
 	"errors"
 	"fmt"
@@ -16,6 +15,7 @@ import (
 	"github.com/cloudinary/cloudinary-go/v2/api"
 	"github.com/cloudinary/cloudinary-go/v2/api/uploader"
 	"github.com/labstack/echo/v4"
+	chequerutilities "github.com/usechequer/utilities"
 )
 
 func getTimestampPointer(val time.Time) *time.Time {
@@ -27,7 +27,7 @@ var avatarErrorMessage = "There was an issue processing the avatar upload"
 func VerifyUser(context echo.Context) error {
 	user := context.Get("user").(models.User)
 
-	database := utilities.GetDatabaseObject()
+	database := chequerutilities.GetDatabaseObject()
 
 	user.EmailVerifiedAt = getTimestampPointer(time.Now())
 
@@ -52,7 +52,7 @@ func UpdateUser(ctx echo.Context) error {
 		user.CurrentProjectUuid = &updateUserDto.CurrentProjectUuid
 	}
 
-	database := utilities.GetDatabaseObject()
+	database := chequerutilities.GetDatabaseObject()
 
 	avatar, err := ctx.FormFile("avatar")
 
@@ -64,7 +64,7 @@ func UpdateUser(ctx echo.Context) error {
 	avatarSrc, err := uploadAvatar(avatar, user.Uuid.String())
 
 	if err != nil {
-		return utilities.ThrowException(ctx, &utilities.Exception{Error: "USER_004", Message: avatarErrorMessage})
+		return chequerutilities.ThrowException(ctx, &chequerutilities.Exception{Error: "USER_004", Message: avatarErrorMessage})
 	}
 
 	user.Avatar = &avatarSrc
