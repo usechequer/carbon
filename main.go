@@ -6,7 +6,9 @@ import (
 	"carbon/models"
 	"carbon/utilities"
 	"carbon/validators"
+	"fmt"
 	"log"
+	"os"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/joho/godotenv"
@@ -51,5 +53,5 @@ func main() {
 	userGroup.Use(middleware.TokenMiddleware)
 	userGroup.PUT("", validators.UpdateUserValidator)
 
-	app.Logger.Fatal(app.Start(":8000"))
+	app.Logger.Fatal(app.Start(fmt.Sprintf(":%s", os.Getenv("APP_PORT"))))
 }
