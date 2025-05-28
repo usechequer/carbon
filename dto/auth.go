@@ -1,10 +1,10 @@
 package dto
 
 type UserSignupDto struct {
-	FirstName string `json:"first_name" validate:"required"`
-	LastName  string `json:"last_name" validate:"required"`
-	Email     string `json:"email" validate:"required,email"`
-	Password  string `json:"password" validate:"required,min=8"`
+	FirstName string `json:"first_name" validate:"required" faker:"first_name"`
+	LastName  string `json:"last_name" validate:"required" faker:"last_name"`
+	Email     string `json:"email" validate:"required,email" faker:"email"`
+	Password  string `json:"password" validate:"required,min=8" faker:"password"`
 }
 
 type UserLoginDto struct {
