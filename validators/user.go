@@ -17,7 +17,7 @@ func VerifyUserValidator(context echo.Context) error {
 	verifyUserDto := new(dto.VerifyUserDto)
 
 	if err := context.Bind(verifyUserDto); err != nil {
-		return chequerutilities.ThrowException(context, &chequerutilities.Exception{StatusCode: http.StatusBadRequest, Error: "MALFORMED_REQUEST", Message: err.Error()})
+		return chequerutilities.ThrowException(&chequerutilities.Exception{StatusCode: http.StatusBadRequest, Error: "MALFORMED_REQUEST", Message: err.Error()})
 	}
 
 	var user models.User
@@ -27,11 +27,11 @@ func VerifyUserValidator(context echo.Context) error {
 	result := database.Where("uuid = ?", verifyUserDto.Uuid).First(&user)
 
 	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
-		return chequerutilities.ThrowException(context, &chequerutilities.Exception{StatusCode: http.StatusNotFound, Error: "USER_001", Message: fmt.Sprintf("User with uuid %s does not exist", verifyUserDto.Uuid)})
+		return chequerutilities.ThrowException(&chequerutilities.Exception{StatusCode: http.StatusNotFound, Error: "USER_001", Message: fmt.Sprintf("User with uuid %s does not exist", verifyUserDto.Uuid)})
 	}
 
 	if user.EmailVerifiedAt != nil {
-		return chequerutilities.ThrowException(context, &chequerutilities.Exception{StatusCode: http.StatusBadRequest, Error: "USER_002", Message: fmt.Sprintf("User with uuid %s is verified already", verifyUserDto.Uuid)})
+		return chequerutilities.ThrowException(&chequerutilities.Exception{StatusCode: http.StatusBadRequest, Error: "USER_002", Message: fmt.Sprintf("User with uuid %s is verified already", verifyUserDto.Uuid)})
 	}
 
 	context.Set("user", user)
@@ -45,11 +45,11 @@ func UpdateUserValidator(context echo.Context) error {
 	updateUserDto := new(dto.UpdateUserDto)
 
 	if err := context.Bind(updateUserDto); err != nil {
-		return chequerutilities.ThrowException(context, &chequerutilities.Exception{StatusCode: http.StatusBadRequest, Error: "MALFORMED_REQUEST", Message: err.Error()})
+		return chequerutilities.ThrowException(&chequerutilities.Exception{StatusCode: http.StatusBadRequest, Error: "MALFORMED_REQUEST", Message: err.Error()})
 	}
 
 	if user.Uuid.String() != updateUserDto.Uuid.String() {
-		return chequerutilities.ThrowException(context, &chequerutilities.Exception{StatusCode: http.StatusUnauthorized, Error: "AUTH_004", Message: "Not authenticated"})
+		return chequerutilities.ThrowException(&chequerutilities.Exception{StatusCode: http.StatusUnauthorized, Error: "AUTH_004", Message: "Not authenticated"})
 	}
 
 	if err := context.Validate(updateUserDto); err != nil {

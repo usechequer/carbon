@@ -70,7 +70,7 @@ func OauthCallbackHandler(context echo.Context) error {
 		token, err := utilities.GenerateJwtToken(user.Uuid.String())
 
 		if err != nil {
-			return chequerutilities.ThrowException(context, &chequerutilities.Exception{StatusCode: http.StatusInternalServerError, Error: "AUTH_003", Message: "There was a problem generating the token."})
+			return chequerutilities.ThrowException(&chequerutilities.Exception{StatusCode: http.StatusInternalServerError, Error: "AUTH_003", Message: "There was a problem generating the token."})
 		}
 
 		jwtToken = token
@@ -88,7 +88,7 @@ func OauthCallbackHandler(context echo.Context) error {
 		token, err := utilities.GenerateJwtToken(user.Uuid.String())
 
 		if err != nil {
-			return chequerutilities.ThrowException(context, &chequerutilities.Exception{StatusCode: http.StatusInternalServerError, Error: "AUTH_003", Message: "There was a problem generating the token."})
+			return chequerutilities.ThrowException(&chequerutilities.Exception{StatusCode: http.StatusInternalServerError, Error: "AUTH_003", Message: "There was a problem generating the token."})
 		}
 
 		jwtToken = token

@@ -32,10 +32,12 @@ func TestSignupValidatorInvalidInputs(t *testing.T) {
 	recorder := httptest.NewRecorder()
 	context := app.NewContext(request, recorder)
 
+	errorz := SignupValidator(context)
+
 	if assert.Error(t, SignupValidator(context)) {
 		assert.Equal(t, http.StatusBadRequest, recorder.Code)
 
-		fmt.Println(recorder.Code)
+		fmt.Println(context.Response().Status)
 		fmt.Println(recorder.Body.String())
 
 		var response map[string][]interface{}

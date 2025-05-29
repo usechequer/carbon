@@ -64,7 +64,7 @@ func UpdateUser(ctx echo.Context) error {
 	avatarSrc, err := uploadAvatar(avatar, user.Uuid.String())
 
 	if err != nil {
-		return chequerutilities.ThrowException(ctx, &chequerutilities.Exception{Error: "USER_004", Message: avatarErrorMessage})
+		return chequerutilities.ThrowException(&chequerutilities.Exception{Error: "USER_004", Message: avatarErrorMessage})
 	}
 
 	user.Avatar = &avatarSrc
