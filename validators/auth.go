@@ -26,7 +26,8 @@ func SignupValidator(context echo.Context) error {
 	}
 
 	if err := context.Validate(signupDto); err != nil {
-		return err
+		// return err
+		return chequerutilities.ThrowException(context, &chequerutilities.Exception{StatusCode: http.StatusBadRequest, Error: "MALFORMED_REQUEST", Message: "akak"})
 	}
 
 	database := chequerutilities.GetDatabaseObject()
