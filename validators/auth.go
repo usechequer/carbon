@@ -98,7 +98,7 @@ func ResetPasswordValidator(context echo.Context) error {
 	result := database.Where("email = ?", resetPasswordDto.Email).First(&user)
 
 	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
-		return chequerutilities.ThrowException(&chequerutilities.Exception{StatusCode: http.StatusNotFound, Error: "USER_001", Message: fmt.Sprintf("User with email %s does not exist", resetPasswordDto.Email)})
+		return context.JSON(http.StatusOK, map[string]string{"message": "Reset password email sent successfully"})
 	}
 
 	context.Set("user", user)

@@ -8,12 +8,12 @@ type UserSignupDto struct {
 }
 
 type UserLoginDto struct {
-	Email    string `json:"email" validate:"required,email"`
-	Password string `json:"password" validate:"required,min=8"`
+	Email    string `json:"email" validate:"required,email" faker:"email"`
+	Password string `json:"password" validate:"required,min=8" faker:"password"`
 }
 
 type ResetPasswordDto struct {
-	Email string `json:"email" validate:"required,email"`
+	Email string `json:"email" validate:"required,email" faker:"email"`
 }
 type ConfirmResetPasswordDto struct {
 	Token    string `json:"token" validate:"required"`
