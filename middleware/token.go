@@ -23,7 +23,7 @@ func TokenMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 		result := database.Where("uuid = ?", userUuid).First(&user)
 
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
-			return chequerutilities.ThrowException(context, &chequerutilities.Exception{StatusCode: http.StatusUnauthorized, Message: "Not authenticated", Error: "AUTH_004"})
+			return chequerutilities.ThrowException(&chequerutilities.Exception{StatusCode: http.StatusUnauthorized, Message: "Not authenticated", Error: "AUTH_004"})
 		}
 
 		context.Set("user", user)

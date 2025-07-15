@@ -35,8 +35,8 @@ func main() {
 	app.POST("/auth/signup", validators.SignupValidator)
 	app.POST("/auth/login", validators.LoginValidator)
 
-	app.POST("/auth/reset-password", validators.ResetPasswordValidator)
 	app.POST("/auth/reset-password/confirm", validators.ConfirmResetPasswordValidator)
+	app.POST("/auth/reset-password", validators.ResetPasswordValidator)
 
 	app.GET("/auth/:provider", controllers.OauthRedirectHandler)
 	app.GET("/auth/:provider/callback", validators.OauthCallbackValidator)
