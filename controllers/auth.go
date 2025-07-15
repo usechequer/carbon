@@ -5,7 +5,6 @@ import (
 	"carbon/models"
 	"carbon/utilities"
 	"fmt"
-	"math/rand"
 	"net/http"
 	"time"
 
@@ -65,7 +64,7 @@ func Login(context echo.Context) error {
 func ResetPassword(context echo.Context) error {
 	user := context.Get("user").(models.User)
 
-	token := generateRandomString(100)
+	token := utilities.GenerateRandomString(100)
 	user.PasswordReset = getPasswordResetPointer(token)
 
 	database := chequerutilities.GetDatabaseObject()
@@ -88,17 +87,4 @@ func ConfirmResetPassword(context echo.Context) error {
 	database.Save(&user)
 
 	return context.JSON(http.StatusOK, map[string]string{"message": "Password reset successfully"})
-}
-
-func generateRandomString(length int) string {
-	const CHARSET = "abcdefghijklmnopqrstuvwxyz" + "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-	bytes := make([]byte, length)
-	var seededRand *rand.Rand = rand.New(
-		rand.NewSource(time.Now().UnixNano()))
-
-	for i := range bytes {
-		bytes[i] = CHARSET[seededRand.Intn(len(CHARSET))]
-	}
-
-	return string(bytes)
 }
