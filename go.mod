@@ -44,7 +44,7 @@ require (
 	github.com/markbates/goth v1.80.0
 	github.com/mattn/go-colorable v0.1.14 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
-	github.com/usechequer/utilities v1.6.0
+	github.com/usechequer/utilities v1.7.0
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasttemplate v1.2.2 // indirect
 	golang.org/x/net v0.40.0 // indirect

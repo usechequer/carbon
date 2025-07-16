@@ -3,7 +3,7 @@ package dto
 import "github.com/google/uuid"
 
 type VerifyUserDto struct {
-	Uuid uuid.UUID `param:"uuid"`
+	Uuid uuid.UUID `param:"uuid" faker:"uuid_hyphenated"`
 }
 
 type UpdateUserDto struct {

@@ -9,15 +9,10 @@ import (
 	"testing"
 
 	"github.com/go-faker/faker/v4"
-	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
 	chequerutilities "github.com/usechequer/utilities"
 )
-
-func init() {
-	godotenv.Load("../.env")
-}
 
 func TestSignupValidatorInvalidInputs(t *testing.T) {
 	signupDto := new(dto.UserSignupDto)
@@ -35,7 +30,7 @@ func TestSignupValidatorInvalidInputs(t *testing.T) {
 
 		var response = parsedError.Message.(map[string][]chequerutilities.RequestError)
 
-		assert.Equal(t, 3, len(response["errors"]))
+		assert.Equal(t, 4, len(response["errors"]))
 	} else {
 		t.Fatal("The function completed wrongly without an error")
 	}

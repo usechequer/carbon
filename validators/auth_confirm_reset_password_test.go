@@ -14,6 +14,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
 	chequerutilities "github.com/usechequer/utilities"
+	"golang.org/x/crypto/bcrypt"
 	"gorm.io/datatypes"
 )
 
@@ -94,5 +95,43 @@ func TestConfirmResetPasswordWithExpiredToken(t *testing.T) {
 	} else {
 		t.Fatal("The function wrongly returned without an error")
 	}
+}
 
+func TestConfirmResetPasswordSuccessfully(t *testing.T) {
+	passwordResetToken := utilities.GenerateRandomString(50)
+	passwordReset := datatypes.JSON([]byte(fmt.Sprintf(`{"token": "%s", "expires_at": "%s"}`, passwordResetToken, time.Now().Add(5*time.Minute).Format(time.RFC3339))))
+
+	user := models.User{FirstName: faker.FirstName(), LastName: faker.LastName(), Email: faker.Email(), Password: faker.Password(), AuthProvider: 1, PasswordReset: &passwordReset}
+
+	database := chequerutilities.GetDatabaseObject()
+
+	result := database.Save(&user)
+
+	if result.Error != nil {
+		t.Fatal("There was a problem creating the test user")
+	}
+
+	confirmResetPasswordDto := new(dto.ConfirmResetPasswordDto)
+	confirmResetPasswordDto.Token = passwordResetToken
+	confirmResetPasswordDto.Password = faker.Password()
+	confirmResetPasswordDtoJson, _ := json.Marshal(confirmResetPasswordDto)
+
+	context, recorder := chequerutilities.GetTestUtilities(http.MethodPost, "/auth/reset-password/confirm", confirmResetPasswordDtoJson)
+
+	err := ConfirmResetPasswordValidator(context)
+
+	if assert.NoError(t, err) {
+		assert.Equal(t, http.StatusOK, recorder.Code)
+
+		var updatedUser models.User
+		database.Where("id = ?", user.ID).First(&updatedUser)
+
+		assert.Nil(t, updatedUser.PasswordReset)
+
+		err := bcrypt.CompareHashAndPassword([]byte(updatedUser.Password), []byte(confirmResetPasswordDto.Password))
+
+		assert.Nil(t, err)
+	} else {
+		t.Fatal("The function wrongly returned an error")
+	}
 }
