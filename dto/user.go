@@ -7,7 +7,6 @@ type VerifyUserDto struct {
 }
 
 type UpdateUserDto struct {
-	Uuid               uuid.UUID `param:"uuid"`
 	FirstName          string    `form:"first_name"`
 	LastName           string    `form:"last_name"`
 	CurrentProjectUuid uuid.UUID `form:"current_project_uuid"`

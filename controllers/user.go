@@ -75,6 +75,10 @@ func UpdateUser(ctx echo.Context) error {
 }
 
 func uploadAvatar(avatar *multipart.FileHeader, userUuid string) (avatarSrc string, err error) {
+	if os.Getenv("APP_ENV") == "test" {
+		return "", nil
+	}
+
 	cloudinary, err := cloudinaryV2.New()
 
 	if err != nil {
