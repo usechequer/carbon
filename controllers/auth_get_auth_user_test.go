@@ -4,9 +4,13 @@ import (
 	"carbon/models"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
+	"os"
+	"strings"
 	"testing"
 
+	"github.com/go-faker/faker/v4"
 	"github.com/joho/godotenv"
 	"github.com/stretchr/testify/assert"
 	chequerutilities "github.com/usechequer/utilities"
@@ -15,6 +19,31 @@ import (
 
 func init() {
 	godotenv.Load("../.env")
+}
+
+func TestMain(m *testing.M) {
+	if os.Getenv("APP_ENV") == "test" {
+		fmt.Println("=========== Running the migrations ============")
+
+		database := chequerutilities.GetDatabaseObject()
+		database.AutoMigrate(&models.User{})
+
+		fmt.Println("=========== Migrations completed ============")
+
+		fmt.Println("=========== Running the users seeder ===========")
+
+		users := make([]models.User, 20)
+
+		for i := 0; i < 20; i++ {
+			users[i] = models.User{FirstName: faker.FirstName(), LastName: faker.LastName(), Email: strings.ToLower(faker.Email()), AuthProvider: 1, Password: faker.Password()}
+		}
+
+		database.Create(&users)
+
+		fmt.Println("=========== Users seeder completed ===========")
+	}
+
+	m.Run()
 }
 
 func TestGetAuthUser(t *testing.T) {
