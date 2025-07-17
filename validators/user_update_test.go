@@ -41,6 +41,6 @@ func TestUpdateUserWithInvalidUuid(t *testing.T) {
 	}
 }
 
-func TestUpdateUserSuccessfutlly(t *testing.T) {
+func TestUpdateUserSuccessfully(t *testing.T) {
 
 }

@@ -4,15 +4,16 @@ import (
 	"carbon/dto"
 	"carbon/models"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"testing"
 	"time"
 
-	"github.com/go-faker/faker/v4"
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
 	chequerutilities "github.com/usechequer/utilities"
+	"gorm.io/gorm"
 )
 
 func TestVerifyUserWithInvalidUuid(t *testing.T) {
@@ -41,15 +42,18 @@ func TestVerifyUserWhoIsVerifiedAlready(t *testing.T) {
 		return &value
 	}
 
-	user := models.User{FirstName: faker.FirstName(), LastName: faker.LastName(), Email: faker.LastName(), AuthProvider: 1, EmailVerifiedAt: getTimestampPointer(time.Now())}
+	var user models.User
 
 	database := chequerutilities.GetDatabaseObject()
 
-	result := database.Save(&user)
+	result := database.Where("email_verified_at IS NULL").First(&user)
 
-	if result.Error != nil {
-		t.Fatal("There was a problem creating the test user")
+	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+		t.Fatal("There was a problem querying for the test user")
 	}
+
+	user.EmailVerifiedAt = getTimestampPointer(time.Now())
+	database.Save(&user)
 
 	verifyUserDto := &dto.VerifyUserDto{Uuid: user.Uuid}
 	verifyUserDtoJson, _ := json.Marshal(verifyUserDto)
@@ -72,14 +76,14 @@ func TestVerifyUserWhoIsVerifiedAlready(t *testing.T) {
 }
 
 func TestVerifyUserSuccessfully(t *testing.T) {
-	user := models.User{FirstName: faker.FirstName(), LastName: faker.LastName(), Email: faker.LastName(), AuthProvider: 1}
+	var user models.User
 
 	database := chequerutilities.GetDatabaseObject()
 
-	result := database.Save(&user)
+	result := database.Where("email_verified_at IS NULL").First(&user)
 
-	if result.Error != nil {
-		t.Fatal("There was a problem creating the test user")
+	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+		t.Fatal("There was a problem querying for the test user")
 	}
 
 	verifyUserDto := &dto.VerifyUserDto{Uuid: user.Uuid}

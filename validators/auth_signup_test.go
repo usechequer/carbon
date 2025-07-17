@@ -4,14 +4,15 @@ import (
 	"carbon/dto"
 	"carbon/models"
 	"encoding/json"
+	"errors"
 	"net/http"
-	"strings"
 	"testing"
 
 	"github.com/go-faker/faker/v4"
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
 	chequerutilities "github.com/usechequer/utilities"
+	"gorm.io/gorm"
 )
 
 func TestSignupValidatorInvalidInputs(t *testing.T) {
@@ -43,14 +44,14 @@ func TestSignupWithTakenEmail(t *testing.T) {
 		t.Fatal("There was a problem generating the fake data")
 	}
 
-	user := models.User{FirstName: signupDto.FirstName, LastName: signupDto.LastName, Email: strings.ToLower(signupDto.Email), Password: signupDto.Password, AuthProvider: 1}
+	var user models.User
 
 	database := chequerutilities.GetDatabaseObject()
 
-	result := database.Create(&user)
+	result := database.Order("RAND()").First(&user)
 
-	if result.Error != nil {
-		t.Fatal("There was an issue creating the test user")
+	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+		t.Fatal("There was a problem querying for the test user")
 	}
 
 	newSignupDto := new(dto.UserSignupDto)

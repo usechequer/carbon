@@ -36,7 +36,7 @@ func TestMain(m *testing.M) {
 		users := make([]models.User, 20)
 
 		for i := 0; i < 20; i++ {
-			users[i] = models.User{FirstName: faker.FirstName(), LastName: faker.LastName(), Email: faker.Email(), AuthProvider: 1, Password: faker.Password()}
+			users[i] = models.User{FirstName: faker.FirstName(), LastName: faker.LastName(), Email: strings.ToLower(faker.Email()), AuthProvider: 1, Password: faker.Password()}
 		}
 
 		database.Create(&users)
@@ -75,16 +75,6 @@ func TestLoginWithIncorrectInputs(t *testing.T) {
 	}
 
 	loginDtoJson, _ := json.Marshal(loginDto)
-
-	user := models.User{FirstName: faker.FirstName(), LastName: faker.LastName(), Email: loginDto.Email, Password: loginDto.Password}
-
-	database := chequerutilities.GetDatabaseObject()
-
-	result := database.Save(&user)
-
-	if result.Error != nil {
-		t.Fatal("There was an issue creating the test user")
-	}
 
 	context, _ := chequerutilities.GetTestUtilities(http.MethodPost, "/auth/login", loginDtoJson)
 

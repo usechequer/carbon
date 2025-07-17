@@ -5,6 +5,7 @@ import (
 	"carbon/models"
 	"carbon/utilities"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"testing"
@@ -16,6 +17,7 @@ import (
 	chequerutilities "github.com/usechequer/utilities"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/datatypes"
+	"gorm.io/gorm"
 )
 
 func TestConfirmResetPasswordWithInvalidInputs(t *testing.T) {
@@ -66,14 +68,17 @@ func TestConfirmResetPasswordWithExpiredToken(t *testing.T) {
 	passwordResetToken := utilities.GenerateRandomString(50)
 	passwordReset := datatypes.JSON([]byte(fmt.Sprintf(`{"token": "%s", "expires_at": "%s"}`, passwordResetToken, time.Now().Add(-1*time.Minute).Format(time.RFC3339))))
 
-	user := models.User{FirstName: faker.FirstName(), LastName: faker.LastName(), Email: faker.Email(), Password: faker.Password(), AuthProvider: 1, PasswordReset: &passwordReset}
+	var user models.User
 
 	database := chequerutilities.GetDatabaseObject()
-	result := database.Save(&user)
+	result := database.Where("password_reset IS NULL").Order("RAND()").First(&user)
 
-	if result.Error != nil {
-		t.Fatal("There was a problem creating the test user")
+	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+		t.Fatal("There was a problem querying for the test user")
 	}
+
+	user.PasswordReset = &passwordReset
+	database.Save(&user)
 
 	confirmResetPasswordDto := new(dto.ConfirmResetPasswordDto)
 	confirmResetPasswordDto.Token = passwordResetToken
@@ -101,15 +106,18 @@ func TestConfirmResetPasswordSuccessfully(t *testing.T) {
 	passwordResetToken := utilities.GenerateRandomString(50)
 	passwordReset := datatypes.JSON([]byte(fmt.Sprintf(`{"token": "%s", "expires_at": "%s"}`, passwordResetToken, time.Now().Add(5*time.Minute).Format(time.RFC3339))))
 
-	user := models.User{FirstName: faker.FirstName(), LastName: faker.LastName(), Email: faker.Email(), Password: faker.Password(), AuthProvider: 1, PasswordReset: &passwordReset}
+	var user models.User
 
 	database := chequerutilities.GetDatabaseObject()
 
-	result := database.Save(&user)
+	result := database.Where("password_reset IS NULL").Order("RAND()").First(&user)
 
-	if result.Error != nil {
-		t.Fatal("There was a problem creating the test user")
+	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+		t.Fatal("There was a problem querying for the test user")
 	}
+
+	user.PasswordReset = &passwordReset
+	database.Save(&user)
 
 	confirmResetPasswordDto := new(dto.ConfirmResetPasswordDto)
 	confirmResetPasswordDto.Token = passwordResetToken

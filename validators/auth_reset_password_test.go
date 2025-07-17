@@ -4,14 +4,15 @@ import (
 	"carbon/dto"
 	"carbon/models"
 	"encoding/json"
+	"errors"
 	"net/http"
-	"strings"
 	"testing"
 
 	"github.com/go-faker/faker/v4"
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
 	chequerutilities "github.com/usechequer/utilities"
+	"gorm.io/gorm"
 )
 
 func TestResetPasswordWithInvalidInputs(t *testing.T) {
@@ -55,18 +56,17 @@ func TestResetPasswordWithIncorrectEmail(t *testing.T) {
 func TestResetPasswordSuccessfully(t *testing.T) {
 	resetPasswordDto := new(dto.ResetPasswordDto)
 
-	email := strings.ToLower(faker.Email())
-	user := models.User{FirstName: faker.FirstName(), LastName: faker.LastName(), Email: email, Password: faker.Password(), AuthProvider: 1}
+	var user models.User
 
 	database := chequerutilities.GetDatabaseObject()
 
-	result := database.Save(&user)
+	result := database.Order("RAND()").First(&user)
 
-	if result.Error != nil {
-		t.Fatal("There was a problem creating the test user")
+	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+		t.Fatal("There was a problem querying for the test user")
 	}
 
-	resetPasswordDto.Email = email
+	resetPasswordDto.Email = user.Email
 
 	resetPasswordDtoJson, _ := json.Marshal(resetPasswordDto)
 
