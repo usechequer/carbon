@@ -30,9 +30,9 @@ jobs:
 
       - name: Install dependencies
         run: go get
-      
+
       - name: Create .env file and populate it with env variables
-        run:|
+        run: |
           touch .env \
           echo APP_ENV=${{ secrets.APP_ENV }} >> .env \
           echo APP_NAME=${{ secrets.APP_NAME }} >> .env \
