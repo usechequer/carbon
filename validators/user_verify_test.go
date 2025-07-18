@@ -109,6 +109,6 @@ func TestVerifyUserSuccessfully(t *testing.T) {
 
 		assert.NotNil(t, updatedUser.EmailVerifiedAt)
 	} else {
-		t.Fatal("The function wrongly returned an error")
+		t.Fatal("The function wrongly returned an error.")
 	}
 }
