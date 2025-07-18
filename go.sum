@@ -103,6 +103,8 @@ github.com/usechequer/utilities v1.5.0 h1:TkjgBUjObqSY9a2LpKxxuV+5wRRTuyALB4IG+y
 github.com/usechequer/utilities v1.5.0/go.mod h1:xvoGbqb2joQ/hlW50qrsayf2kYFN5AuKS3aNQygtl6o=
 github.com/usechequer/utilities v1.6.0 h1:61uP6tRlS15V8tfdwvDg4Y/Xuy/gbQ/jsXQvlo1r1/M=
 github.com/usechequer/utilities v1.6.0/go.mod h1:xvoGbqb2joQ/hlW50qrsayf2kYFN5AuKS3aNQygtl6o=
+github.com/usechequer/utilities v1.7.0 h1:/v4ju4wX3J1nqmyNpB3tmGA3hqIdEz+PEYe4p/SD7Xg=
+github.com/usechequer/utilities v1.7.0/go.mod h1:xvoGbqb2joQ/hlW50qrsayf2kYFN5AuKS3aNQygtl6o=
 github.com/valyala/bytebufferpool v1.0.0 h1:GqA5TC/0021Y/b9FG4Oi9Mr3q7XYx6KllzawFIhcdPw=
 github.com/valyala/bytebufferpool v1.0.0/go.mod h1:6bBcMArwyJ5K/AmCkWv1jt77kVWyCJ6HpOuEn7z0Csc=
 github.com/valyala/fasttemplate v1.2.2 h1:lxLXG0uE3Qnshl9QyaK6XJxMXlQZELvChBOCmQD0Loo=

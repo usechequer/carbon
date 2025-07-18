@@ -1,0 +1,49 @@
+# This will run the application's tests
+
+name: Carbon
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  test_and_build:
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_DATABASE: ${{ secrets.DATABASE_NAME }}
+          MYSQL_ROOT_PASSWORD: ${{ secrets.DATABASE_PASSWORD }}
+        ports:
+          - ${{ secrets.DATABASE_HOST }}:3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+
+    steps:
+      - name: Checkout the branch/latest commit
+        uses: actions/checkout@v3
+
+      - name: Install dependencies
+        run: go get
+
+      - name: Create .env file and populate it with env variables
+        run: |
+          touch .env \
+          echo APP_ENV=${{ secrets.APP_ENV }} >> .env \
+          echo APP_NAME=${{ secrets.APP_NAME }} >> .env \
+          echo APP_PORT=${{ secrets.APP_PORT }} >> .env \
+          echo CLIENT_URL=${{ secrets.CLIENT_URL }} >> .env \
+          echo DATABASE_HOST=${{ secrets.DATABASE_HOST }} >> .env \
+          echo DATABASE_NAME=${{ secrets.DATABASE_NAME }} >> .env \
+          echo DATABASE_PASSWORD=${{ secrets.DATABASE_PASSWORD }} >> .env \
+          echo DATABASE_PORT=${{ secrets.DATABASE_PORT }} >> .env \
+          echo DATABASE_USERNAME=${{ secrets.DATABASE_USERNAME }} >> .env \
+          echo JWT_SECRET_KEY=${{ secrets.JWT_SECRET_KEY }} >> .env \
+
+      - name: Run tests
+        run: go test ./...

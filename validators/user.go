@@ -48,7 +48,7 @@ func UpdateUserValidator(context echo.Context) error {
 		return chequerutilities.ThrowException(&chequerutilities.Exception{StatusCode: http.StatusBadRequest, Error: "MALFORMED_REQUEST", Message: err.Error()})
 	}
 
-	if user.Uuid.String() != updateUserDto.Uuid.String() {
+	if user.Uuid.String() != context.Param("uuid") {
 		return chequerutilities.ThrowException(&chequerutilities.Exception{StatusCode: http.StatusUnauthorized, Error: "AUTH_004", Message: "Not authenticated"})
 	}
 

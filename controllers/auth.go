@@ -40,7 +40,7 @@ func Signup(context echo.Context) error {
 		return context.JSON(http.StatusInternalServerError, map[string]string{"message": "There was a problem signing the user up."})
 	}
 
-	token, err := utilities.GenerateJwtToken(user.Uuid.String())
+	token, err := chequerutilities.GenerateJwtToken(user.Uuid.String())
 
 	if err != nil {
 		return chequerutilities.ThrowException(&chequerutilities.Exception{StatusCode: http.StatusInternalServerError, Error: "AUTH_003", Message: "There was a problem generating the token."})
@@ -52,7 +52,7 @@ func Signup(context echo.Context) error {
 func Login(context echo.Context) error {
 	user := context.Get("user").(models.User)
 
-	token, err := utilities.GenerateJwtToken(user.Uuid.String())
+	token, err := chequerutilities.GenerateJwtToken(user.Uuid.String())
 
 	if err != nil {
 		return chequerutilities.ThrowException(&chequerutilities.Exception{StatusCode: http.StatusInternalServerError, Error: "AUTH_003", Message: "There was a problem generating the token."})

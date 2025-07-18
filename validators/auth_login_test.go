@@ -49,16 +49,6 @@ func TestLoginWithIncorrectInputs(t *testing.T) {
 
 	loginDtoJson, _ := json.Marshal(loginDto)
 
-	user := models.User{FirstName: faker.FirstName(), LastName: faker.LastName(), Email: loginDto.Email, Password: loginDto.Password}
-
-	database := chequerutilities.GetDatabaseObject()
-
-	result := database.Save(&user)
-
-	if result.Error != nil {
-		t.Fatal("There was an issue creating the test user")
-	}
-
 	context, _ := chequerutilities.GetTestUtilities(http.MethodPost, "/auth/login", loginDtoJson)
 
 	err := LoginValidator(context)
